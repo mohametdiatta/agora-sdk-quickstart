@@ -13,7 +13,6 @@ import { useState } from "react";
 export const Basics = () => {
   const [calling, setCalling] = useState(false);
   const isConnected = useIsConnected(); // Store the user's connection status
-  const [appId, setAppId] = useState("");
   const [channel, setChannel] = useState("");
 
   useJoin(
