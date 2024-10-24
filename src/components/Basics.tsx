@@ -10,16 +10,20 @@ import {
 } from "agora-rtc-react";
 import { useState } from "react";
 
+// mohemet
 export const Basics = () => {
   const [calling, setCalling] = useState(false);
   const isConnected = useIsConnected(); // Store the user's connection status
   const [channel, setChannel] = useState("");
+  const [isHost, setIsHost] = useState(true); // State to define if user is a host or audience
 
+  // Join the channel with different roles (host or audience)
   useJoin(
     {
       appid: "121d7121d78b40eba1b6e98a429f76ca",
       channel: channel,
       token: null,
+      // role: isHost ? "host" : "audience", // Set the role based on the user state
     },
     calling
   );
@@ -28,7 +32,12 @@ export const Basics = () => {
   const [cameraOn, setCamera] = useState(true);
   const { localMicrophoneTrack } = useLocalMicrophoneTrack(micOn);
   const { localCameraTrack } = useLocalCameraTrack(cameraOn);
-  usePublish([localMicrophoneTrack, localCameraTrack]);
+
+  // Only publish if the user is a host
+  if (isHost) {
+    // eslint-disable-next-line react-hooks/rules-of-hooks
+    usePublish([localMicrophoneTrack, localCameraTrack]);
+  }
 
   const remoteUsers = useRemoteUsers();
 
@@ -37,17 +46,19 @@ export const Basics = () => {
       <div className="room">
         {isConnected ? (
           <div className="user-list">
-            <div className="user">
-              <LocalUser
-                audioTrack={localMicrophoneTrack}
-                cameraOn={cameraOn}
-                micOn={micOn}
-                videoTrack={localCameraTrack}
-                cover="https://www.agora.io/en/wp-content/uploads/2022/10/3d-spatial-audio-icon.svg"
-              >
-                <samp className="user-name">You</samp>
-              </LocalUser>
-            </div>
+            {isHost && (
+              <div className="user">
+                <LocalUser
+                  audioTrack={localMicrophoneTrack}
+                  cameraOn={cameraOn}
+                  micOn={micOn}
+                  videoTrack={localCameraTrack}
+                  cover="https://www.agora.io/en/wp-content/uploads/2022/10/3d-spatial-audio-icon.svg"
+                >
+                  <samp className="user-name">You (Host)</samp>
+                </LocalUser>
+              </div>
+            )}
             {remoteUsers.map((user) => (
               <div className="user" key={user.uid}>
                 <RemoteUser
@@ -61,23 +72,19 @@ export const Basics = () => {
           </div>
         ) : (
           <div className="join-room">
-            <h2>GAN</h2>
-            {/* <input
-              onChange={(e) => setAppId(e.target.value)}
-              placeholder="<Your app ID>"
-              value={appId}
-            /> */}
+            <h2>Join the Broadcast</h2>
             <input
               onChange={(e) => setChannel(e.target.value)}
               placeholder="<Your channel Name>"
               value={channel}
             />
-            {/* <input
-              onChange={(e) => setToken(e.target.value)}
-              placeholder="<Your token>"
-              value={token}
-            /> */}
-
+            <select
+              onChange={(e) => setIsHost(e.target.value === "host")}
+              value={isHost ? "host" : "audience"}
+            >
+              <option value="host">Host</option>
+              <option value="audience">Audience</option>
+            </select>
             <button
               className={`join-channel ${!channel ? "disabled" : ""}`}
               disabled={!channel}
@@ -88,7 +95,7 @@ export const Basics = () => {
           </div>
         )}
       </div>
-      {isConnected && (
+      {isConnected && isHost && (
         <div className="control">
           <div className="left-control">
             <button className="btn" onClick={() => setMic((a) => !a)}>
